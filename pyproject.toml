@@ -3,7 +3,7 @@ name = "transaction_analysis_app"
 version = "0.1.0"
 description = ""
 authors = [
-    {name = "Alena Kislenko", email = "alena.golovleva@mail.ru"}
+    { name = "Alena Kislenko", email = "alena.golovleva@mail.ru" }
 ]
 readme = "README.md"
 requires-python = ">=3.8"
@@ -16,4 +16,38 @@ build-backend = "poetry-core.masonry.api"
 [tool.poetry]
 packages = [
     { include = "src" }
-    ]
+]
+
+[tool.poetry.group.lint.dependencies]
+flake8 = "^7.1.1"
+mypy = "^1.14.0"
+black = "^24.10.0"
+isort = "^5.13.2"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.4.1"
+pytest-cov = "^7.0.0"
+types-requests = "^2.32.4.20250913"
+
+[tool.black]
+line-length = 119
+target-version = ["py38"]
+skip-string-normalization = true
+
+[tool.isort]
+profile = "black"
+line_length = 119
+known_third_party = []
+skip = ["__pycache__", ".egg-info", ".git", "venv"]
+force_single_line = true
+multi_line_output = 1
+
+[tool.mypy]
+files = "src"
+ignore_missing_imports = true
+warn_return_any = true
+disallow_untyped_defs = true
+exclude = "venv"
+
+[tool.poetry.dependencies]
+python = ">=3.9"

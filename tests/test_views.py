@@ -1,79 +1,71 @@
 import json
-import pytest
+import logging
+import os
+import unittest
 from unittest.mock import patch
-from views import generate_response, get_greeting, get_currency_rates, get_stock_prices
+
+import pandas as pd
+
+from src.views import form_main_page_info
+
+# Настройка логирования
+log_directory = "../logs"
+
+# Проверка на существование директории для логов
+if not os.path.exists(log_directory):
+    os.makedirs(log_directory)
+
+logger = logging.getLogger("logs")
+logger.setLevel(logging.INFO)
+
+# Проверка на наличие обработчиков, чтобы избежать дублирования
+if not logger.hasHandlers():
+    file_handler = logging.FileHandler(os.path.join(log_directory, "views.log"), encoding="utf-8")
+    file_formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s: %(message)s")
+    file_handler.setFormatter(file_formatter)
+    logger.addHandler(file_handler)
 
 
-# Тестирование получения приветствия
-def test_get_greeting():
-    assert get_greeting(datetime(2023, 10, 1, 5, 30)) == "Доброй ночи"
-    assert get_greeting(datetime(2023, 10, 1, 10, 30)) == "Доброе утро"
-    assert get_greeting(datetime(2023, 10, 1, 14, 30)) == "Добрый день"
-    assert get_greeting(datetime(2023, 10, 1, 19, 30)) == "Добрый вечер"
+class TestFormMainPageInfo(unittest.TestCase):
+
+    @patch("src.views.greeting_by_time_of_day")
+    @patch("src.views.get_expenses_cards")
+    @patch("src.views.pd.read_excel")
+    def test_form_main_page_info(self, mock_read_excel, mock_get_expenses_cards, mock_greeting_by_time_of_day):
+
+        mock_read_excel.return_value = pd.DataFrame(
+            {
+                "Дата операции": ["10.12.2021 16:02:10", "15.12.2021 13:01:22", "26.12.2021 01:12:25"],
+                "Сумма платежа": [-200, -300, -150],
+                "Категория": ["Еда", "Транспорт", "Развлечения"],  # Добавьте этот столбец
+                "Описание": ["Ужин", "Такси", "Фильм"],  # И этот
+            }
+        )
+
+        # Настройка mock для get_expenses_cards, чтобы возвращал реальные данные
+        mock_get_expenses_cards.return_value = [{"cards": "1234", "amount": 100}, {"cards": "6789", "amount": 200}]
+
+        # Настройка mock для greeting_by_time_of_day
+        mock_greeting_by_time_of_day.return_value = "Добрый день"
+
+        # Вызываем тестируемую функцию
+        result_data = form_main_page_info("2021-12-25 14:52:20")  # Или ваш тестовый параметр
+        # Проверяем результаты
+        self.assertEqual(result_data["greeting"], "Добрый день")
+        self.assertEqual(len(result_data["cards"]), 2)  # Ожидаем 2 карточки
+
+    def test_invalid_date_format(self) -> None:
+        with patch("src.views.pd.read_excel"):
+            result = form_main_page_info("invalid_date")
+            result_data = json.loads(result)
+            self.assertEqual(result_data["error"], "Некорректный формат даты.")
+
+    def test_read_excel_error(self) -> None:
+        with patch("src.views.pd.read_excel", side_effect=FileNotFoundError):
+            result = form_main_page_info("2021-12-17 14:52:20")
+            result_data = json.loads(result)
+            self.assertEqual(result_data["error"], "Не удалось прочитать данные.")
 
 
-# Тестирование функции получения валютных курсов
-@patch('views.requests.get')
-def test_get_currency_rates(mock_get):
-    mock_get.return_value.json.return_value = {
-        "rates": {
-            "USD": 1.0,
-            "EUR": 0.85
-        }
-    }
-
-    currencies = ["USD", "EUR"]
-    expected_output = [
-        {"currency": "USD", "rate": 1.0},
-        {"currency": "EUR", "rate": 0.85}
-    ]
-
-    result = get_currency_rates(currencies)
-
-    assert result == expected_output
-    mock_get.assert_called_once()
-
-
-# Тестирование функции получения цен акций
-@patch('views.requests.get')
-def test_get_stock_prices(mock_get):
-    mock_get.return_value.json.return_value = {
-        "price": 150.12
-    }
-
-    stocks = ["AAPL"]
-    expected_output = [{"stock": "AAPL", "price": 150.12}]
-
-    result = get_stock_prices(stocks)
-
-    assert result == expected_output
-    mock_get.assert_called_once()
-
-
-# Тестирование главной функции generate_response
-@patch('views.get_currency_rates')
-@patch('views.get_stock_prices')
-@patch('builtins.open', new_callable=pytest.mock.mock_open,
-       read_data='{"user_currencies": ["USD", "EUR"], "user_stocks": ["AAPL", "AMZN"]}')
-def test_generate_response(mock_open, mock_get_stock_prices, mock_get_currency_rates):
-    mock_get_currency_rates.return_value = [
-        {"currency": "USD", "rate": 73.21},
-        {"currency": "EUR", "rate": 87.08}
-    ]
-    mock_get_stock_prices.return_value = [
-        {"stock": "AAPL", "price": 150.12},
-        {"stock": "AMZN", "price": 3173.18}
-    ]
-
-    date_string = "2020-05-20 15:30:00"
-    response = json.loads(generate_response(date_string))
-
-    assert response["greeting"] == "Добрый день"  # Время теста около 15:30
-    assert len(response["cards"]) == 2  # У нас 2 карты в примере
-    assert len(response["currency_rates"]) == 2  # У нас 2 валюты в настройках
-    assert len(response["stock_prices"]) == 2  # У нас 2 акции в настройках
-
-
-# Запуск тестов
 if __name__ == "__main__":
-    pytest.main()
+    unittest.main()
