@@ -4,7 +4,7 @@
 Excel-отчеты, а также предоставлять другие сервисы.
 
 Установка:
-Клонируйте репозиторий  git clone nttps:
+Клонируйте репозиторий  git clone nttps:https://github.com/alenkasmith8-cmd/transaction_analisis_app/pull/1
 Зависимости
 python ">=3.13,<4.0"
 requests 2.32.5
