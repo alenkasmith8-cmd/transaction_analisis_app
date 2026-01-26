@@ -9,7 +9,7 @@ Excel-отчеты, а также предоставлять другие сер
 python ">=3.13,<4.0"
 requests 2.32.5
 pandas 2.3.3
-pytest 9.0.1
+pytest 9.0
 python-dotenv 1.1.1
 Установка зависимостей
 pip install -r requirements.txt
