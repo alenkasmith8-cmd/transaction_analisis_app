@@ -6,7 +6,7 @@ authors = [
     { name = "Alena Kislenko", email = "alena.golovleva@mail.ru" }
 ]
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.13.7"
 dependencies = []
 
 [build-system]
@@ -50,4 +50,4 @@ disallow_untyped_defs = true
 exclude = "venv"
 
 [tool.poetry.dependencies]
-python = ">=3.9"
+python = ">=3.13.7"
