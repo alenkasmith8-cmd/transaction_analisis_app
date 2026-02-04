@@ -4,9 +4,9 @@
 Excel-отчеты, а также предоставлять другие сервисы.
 
 Установка:
-Клонируйте репозиторий  git clone nttps:https://github.com/alenkasmith8-cmd/transaction_analisis_app/pull/1
+Клонируйте репозиторий  git clone https:https://github.com/alenkasmith8-cmd/transaction_analisis_app/pull/1
 Зависимости
-python ">=3.13,<4.0"
+python ">=3.13.7,<4.0"
 requests 2.32.5
 pandas 2.3.3
 pytest 9.0
